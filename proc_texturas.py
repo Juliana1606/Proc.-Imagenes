@@ -49,7 +49,7 @@ def create_gaborfilter():
     ksize = 7  # The local area to evaluate // Kernel size
     lambd = 10.0 # Wavelength of the sinusoidal factor
     sigma = 0.5 * lambd # Larger Values produce more edges // Standard deviation of the gaussian envelope
-    gamma = 0.5 #
+    gamma = 0.2 #
     psi = 0  # Offset value - lower generates cleaner results
 
     for theta in np.arange(0, np.pi, np.pi / num_filters):  # Theta is the orientation for edge detection
@@ -155,7 +155,7 @@ print(f"PROMEDIOS bubbly: {means_bubbly}")
 print(f"PROMEDIOS zigzag: {means_zigzag}")
 
 #PRUEBA
-num_img = 1 #0 hasta N - 1 imagenes cargadas en el dataset test
+num_img = 2 #0 hasta N - 1 imagenes cargadas en el dataset test
 test_img_name = f"Imagen {num_img}"  # Nombre de la imagen
 
 if num_img < len(tests_dict):
