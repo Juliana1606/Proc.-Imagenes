@@ -155,7 +155,7 @@ print(f"PROMEDIOS bubbly: {means_bubbly}")
 print(f"PROMEDIOS zigzag: {means_zigzag}")
 
 #PRUEBA
-num_img = 2 #0 hasta N - 1 imagenes cargadas en el dataset test
+num_img = 5 #0 hasta N - 1 imagenes cargadas en el dataset test
 test_img_name = f"Imagen {num_img}"  # Nombre de la imagen
 
 if num_img < len(tests_dict):
@@ -176,7 +176,7 @@ if num_img < len(tests_dict):
     dist_photoled = euclidean_distance(means_test, means_photoled)
     dist_bubbly = euclidean_distance(means_test, means_bubbly)
     dist_zigzag = euclidean_distance(means_test, means_zigzag)
-
+    #Calcula la distancia de las longitudes de onda, la distancia mas pequeña indica el mejor parecido a la textura 
     distances = {'photoled': dist_photoled, 'bubbly': dist_bubbly, 'zigzag': dist_zigzag}
     closest_texture = min(distances, key=distances.get)
     print(distances)
@@ -190,7 +190,9 @@ if num_img < len(tests_dict):
     similarities = {'photoled': sim_photoled, 'bubbly': sim_bubbly, 'zigzag': sim_zigzag}
     most_similar_texture = max(similarities, key=similarities.get)
     print(similarities)
-    print(most_similar_texture)
+    print(f"Esta Imagen tiene una textura de: {most_similar_texture}")
+
+    
 else:
     print(f'No se encontró la imagen: {test_img_name}')
 
