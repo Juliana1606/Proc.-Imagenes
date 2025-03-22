@@ -1,34 +1,53 @@
 import cv2 as cv
 import numpy as np
 from numpy.linalg import norm
-import matplotlib.pyplot as plt
-from PIL import Image
 from datasets import load_dataset
-from skimage.filters.rank import entropy
-from skimage.morphology import disk
 
 np.set_printoptions(threshold = np.inf)
 
+class img_test:
+    def __init__(self, num_img, img, typeTexture):
+        self.num_img = num_img
+        self.img = img
+        self.typeTexture = typeTexture
+    
+
 #Paths carpetas datasets
-datasets_path = ['../Proc.-Imagenes/datasets/potholed', '../Proc.-Imagenes/datasets/bubbly', '../Proc.-Imagenes/datasets/zigzag', '../Proc.-Imagenes/datasets/tests']
+datasets_path = ['../Proc.-Imagenes/datasets/potholed', '../Proc.-Imagenes/datasets/bubbly', '../Proc.-Imagenes/datasets/zigzag', '../Proc.-Imagenes/datasets/tests/bubbly', '../Proc.-Imagenes/datasets/tests/zigzag', '../Proc.-Imagenes/datasets/tests/potholed']
 
 #Carga de datasets
 dataset_photoled = load_dataset(datasets_path[0])
 dataset_bubbly = load_dataset(datasets_path[1])
 dataset_zigzag = load_dataset(datasets_path[2])
-dataset_tests = load_dataset(datasets_path[3])
+dataset_tests_bubbly = load_dataset(datasets_path[3])
+dataset_tests_zigzag = load_dataset(datasets_path[4])
+dataset_tests_potholed = load_dataset(datasets_path[5])
 
 #Guardar imagenes en array
 photoled_array = [cv.cvtColor(np.array(sample['image']), cv.COLOR_RGB2GRAY) for sample in dataset_photoled['train']]
 bubbly_array = [cv.cvtColor(np.array(sample['image']), cv.COLOR_RGB2GRAY) for sample in dataset_bubbly['train']]
 zigzag_array = [cv.cvtColor(np.array(sample['image']), cv.COLOR_RGB2GRAY) for sample in dataset_zigzag['train']]
 
-#Guardar imagenes en diccionario para acceder a nombres
-tests_dict = {}
-for i in range(dataset_tests['test'].num_rows):
-    image = cv.cvtColor(np.array(dataset_tests['test'][i]['image']), cv.COLOR_RGB2GRAY)
-    tests_dict[f'Imagen {i}'] = image  # Asignar la imagen a la clave correspondiente
-print(tests_dict.keys())
+tests_array = []
+id = 0
+# Cargar cada dataset con su etiqueta correspondiente
+for j, sample in enumerate(dataset_tests_potholed['train']):
+    tests_array.append(img_test(id, cv.cvtColor(np.array(sample['image']), cv.COLOR_RGB2GRAY), "potholed"))
+    id += 1
+
+for j, sample in enumerate(dataset_tests_bubbly['train']):
+    tests_array.append(img_test(id, cv.cvtColor(np.array(sample['image']), cv.COLOR_RGB2GRAY), "bubbly"))
+    id += 1
+
+for j, sample in enumerate(dataset_tests_zigzag['train']):
+    tests_array.append(img_test(id, cv.cvtColor(np.array(sample['image']), cv.COLOR_RGB2GRAY), "zigzag"))
+    id += 1
+
+for obj in tests_array:  # Muestra las primeras 5 imágenes procesadas
+    print(f"ID: {obj.num_img}, Tipo: {obj.typeTexture}")
+
+num_imgs = len(tests_array)
+
 
 #Procesamiento de imagenes de datasets de entreno
 photoled_array_processed = photoled_array.copy()
@@ -154,18 +173,18 @@ print(f"PROMEDIOS photoled: {means_photoled}")
 print(f"PROMEDIOS bubbly: {means_bubbly}")
 print(f"PROMEDIOS zigzag: {means_zigzag}")
 
-#PRUEBA
-num_img = 2 #0 hasta N - 1 imagenes cargadas en el dataset test
-test_img_name = f"Imagen {num_img}"  # Nombre de la imagen
+#PRUEBAS
+contCos = 0
+contEuc = 0
 
-if num_img < len(tests_dict):
-    test_img = tests_dict[test_img_name]  # Cargar la imagen
+for obj in tests_array:
+    test_img_name = f"Imagen {obj.num_img}"  # Nombre de la imagen
+    test_img = obj.img  # Cargar la imagen
     cv.imshow(f'Imagen para test: {test_img_name}', test_img)  # Mostrar el nombre de la imagen
     cv.waitKey(0)
     cv.destroyAllWindows()
     test_img_proccessed = img_aumentobrillo(test_img)
     test_img_filtered = apply_gaborfilter(test_img_proccessed, filters)  # Aplica Gabor
-    print(len(test_img_filtered))
     test_features = []
     for i in range(len(test_img_filtered)):
         test_features.append(extract_features(test_img_filtered[i]))  # Extrae características
@@ -177,21 +196,28 @@ if num_img < len(tests_dict):
     dist_bubbly = euclidean_distance(means_test, means_bubbly)
     dist_zigzag = euclidean_distance(means_test, means_zigzag)
 
-    distances = {'photoled': dist_photoled, 'bubbly': dist_bubbly, 'zigzag': dist_zigzag}
+    distances = {'potholed': dist_photoled, 'bubbly': dist_bubbly, 'zigzag': dist_zigzag}
     closest_texture = min(distances, key=distances.get)
     print(distances)
-    print(closest_texture)
+    print(type(closest_texture), closest_texture)
+    print(type(obj.typeTexture), obj.typeTexture)
+    if(closest_texture == obj.typeTexture):
+        contEuc += 1
+    
 
     sim_photoled = cosine_similarity(means_test, means_photoled)
     sim_bubbly = cosine_similarity(means_test, means_bubbly)
     sim_zigzag = cosine_similarity(means_test, means_zigzag)
 
     # Determina la textura más similar
-    similarities = {'photoled': sim_photoled, 'bubbly': sim_bubbly, 'zigzag': sim_zigzag}
+    similarities = {'potholed': sim_photoled, 'bubbly': sim_bubbly, 'zigzag': sim_zigzag}
     most_similar_texture = max(similarities, key=similarities.get)
     print(similarities)
-    print(most_similar_texture)
-else:
-    print(f'No se encontró la imagen: {test_img_name}')
+    print(type(most_similar_texture), most_similar_texture)
+    print(type(obj.typeTexture), obj.typeTexture)
+    if(most_similar_texture == obj.typeTexture):
+        contCos += 1
+    
 
-
+print(f"Aciertos COS: {contCos}, Porcentaje: {(contCos / num_imgs * 100)}")
+print(f"Aciertos EUC: {contEuc}, Porcentaje: {(contEuc / num_imgs * 100)}")
